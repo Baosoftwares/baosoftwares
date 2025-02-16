@@ -22,7 +22,7 @@
             <h3>Software Comercial</h3>
             <p>Painel de senhas de atendimento para restaurante.</p>
             <!-- Link para o software comercial -->
-            <a href="https://github.com/Baosoftwares/baosoftwares/raw/main/setupSenhas.zip" download class="comprar" data-produto="Software Comercial">Baixar</a>
+            <a href="C:\setupSenhas.zip" download class="comprar" data-produto="Software Comercial">Baixar</a>
             <div class="progress-container" style="display: none;">
                 <div class="progress-bar"></div>
             </div>
@@ -170,34 +170,49 @@
     </style>
 
     <script>
-       $(document).ready(function() {
+      $(document).ready(function() {
     $(".banner img").fadeIn(1500);
 
     $(".comprar").click(function(event) {
-        let produto = $(this).data("produto");
+        let botao = $(this);
+        let produto = botao.data("produto");
 
-        if ($(this).attr("href").includes(".zip")) {
-            // Simulação de download do software
-            event.preventDefault(); // Impede o link de abrir o arquivo
-            $(this).html('Baixando... <div class="spinner"></div>');
-            $(this).css('cursor', 'progress');
-            
-            // Simula o tempo de download (3 segundos)
-            setTimeout(() => {
-                alert(`Você escolheu baixar: ${produto}`);
-                // Inicia o download após 3 segundos
-                window.location.href = $(this).attr("href");
+        if (botao.attr("href").includes(".zip")) {
+            event.preventDefault();
+            botao.html('Baixando... <div class="spinner"></div>');
+            botao.css('cursor', 'progress');
 
-                // Após o download terminar, restaura o botão
-                $(this).html('Baixar');
-                $(this).css('cursor', 'pointer');
-            }, 3000);
+            // Exibe a barra de progresso
+            botao.siblings('.progress-container').show();
+
+            let progress = 0;
+            let interval = setInterval(function() {
+                progress += 10;
+                botao.siblings('.progress-container').find(".progress-bar").css("width", progress + "%");
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(function() {
+                        // Inicia o download após a barra de progresso estar completa
+                        window.location.href = botao.attr("href");
+
+                        // Aguarda um tempo e restaura o botão ao estado original
+                        setTimeout(function() {
+                            botao.html("Baixar");
+                            botao.css("cursor", "pointer");
+                            botao.siblings('.progress-container').hide();
+                            botao.siblings('.progress-container').find(".progress-bar").css("width", "0%");
+                        }, 3000); // Tempo para restaurar o botão
+                    }, 500);
+                }
+            }, 500);
         } else {
             // Redireciona para o link do aplicativo
-            window.location.href = $(this).attr("href");
+            window.location.href = botao.attr("href");
         }
     });
 });
+
 
     </script>
 
