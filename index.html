@@ -22,7 +22,8 @@
             <h3>Software Comercial</h3>
             <p>Painel de senhas de atendimento para restaurante.</p>
             <!-- Link para o software comercial -->
-            <a href="C:\setupSenhas.zip" download class="comprar" data-produto="Software Comercial">Baixar</a>
+            <a href="https://cdn.jsdelivr.net/gh/Baosoftwares/baosoftwares@master/images/setupSenhas.zip" download class="comprar">Baixar</a>
+
             <div class="progress-container" style="display: none;">
                 <div class="progress-bar"></div>
             </div>
@@ -193,8 +194,8 @@
                 if (progress >= 100) {
                     clearInterval(interval);
                     setTimeout(function() {
-                        // Inicia o download após a barra de progresso estar completa
-                        window.location.href = botao.attr("href");
+                        // Usa window.open para iniciar o download em uma nova aba
+                        window.open(botao.attr("href"), "_blank");
 
                         // Aguarda um tempo e restaura o botão ao estado original
                         setTimeout(function() {
@@ -212,6 +213,7 @@
         }
     });
 });
+
 
 
     </script>
