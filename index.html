@@ -187,17 +187,16 @@
   </div>
 
   <script>
-    // 🔥 Firebase config
+    // 🔥 Firebase config (novo banco integra-8eaac)
     const firebaseConfig = {
-  apiKey: "AIzaSyCvLoq9mG81XJ1mRFH9UpTFJQZz7-J5RbE",
-  authDomain: "testedejogo-f29a5.firebaseapp.com",
-  databaseURL: "https://testedejogo-f29a5-default-rtdb.firebaseio.com",
-  projectId: "testedejogo-f29a5",
-  storageBucket: "testedejogo-f29a5.appspot.com", // ✅ corrigido
-  messagingSenderId: "441455928710",
-  appId: "1:441455928710:web:25029255c933e2d343f807",
-  measurementId: "G-TEZZF6WHE6"
-};
+      apiKey: "AIzaSyAYJKmt_-pOElM4oixycLOaZTnBlZ-KmnA",
+      authDomain: "integra-8eaac.firebaseapp.com",
+      databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
+      projectId: "integra-8eaac",
+      storageBucket: "integra-8eaac.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef1234567890"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
@@ -208,24 +207,11 @@
       msgEl.style.display = 'none';
 
       if (!cpfCnpj) {
-        alert("⚠️ Por favor, insira o CPF ou CNPJ antes de gerar a chave.");
         mostrarMensagem('⚠️ Por favor, insira o CPF ou CNPJ antes de gerar a chave.', 'erro');
         return;
       }
 
       try {
-        // 🔎 Verifica duplicidade no Firebase
-        const snapshot = await database.ref('cadastro_usuario')
-          .orderByChild('cpf_cnpj')
-          .equalTo(cpfCnpj)
-          .get();
-
-        if (snapshot.exists()) {
-          alert("❌ Este CPF ou CNPJ já está cadastrado!");
-          mostrarMensagem('⚠️ CPF ou CNPJ já cadastrado! Você não pode gerar uma nova chave.', 'erro');
-          return;
-        }
-
         // ✅ Gera nova chave
         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let chave = '';
@@ -243,8 +229,8 @@
         document.getElementById('copyBtn').style.display = 'inline-block';
         mostrarMensagem('✅ Chave gerada e salva com sucesso!', 'sucesso');
 
-        // Envia para o Firebase
-        await database.ref('cadastro_usuario').push({
+        // 🔄 Envia para Firebase (coleção chave_acesso)
+        await database.ref('chave_acesso').push({
           chave: chave,
           validade: validadeFormatada,
           cpf_cnpj: cpfCnpj,
@@ -252,9 +238,8 @@
         });
 
       } catch (error) {
-        alert("❌ Erro ao acessar o banco de dados.");
-        console.error(error);
-        mostrarMensagem('❌ Erro ao acessar o Firebase.', 'erro');
+        console.error("Erro Firebase:", error);
+        mostrarMensagem('❌ Erro ao salvar no Firebase.', 'erro');
       }
     }
 
