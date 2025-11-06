@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerador de Chave de Acesso</title>
+  <title>Gerador de Chave de Acesso - BaohFood Checkout</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -24,7 +27,6 @@
       overflow: hidden;
     }
 
-    /* Efeito de fundo luminoso */
     .background-blur {
       position: absolute;
       width: 250%;
@@ -41,7 +43,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Container principal */
     .container {
       position: relative;
       width: 420px;
@@ -55,9 +56,7 @@
       transition: transform 0.4s ease;
     }
 
-    .container:hover {
-      transform: translateY(-4px);
-    }
+    .container:hover { transform: translateY(-4px); }
 
     h1 {
       color: #60a5fa;
@@ -67,7 +66,19 @@
       text-shadow: 0 0 10px rgba(96, 165, 250, 0.6);
     }
 
-    /* Botões */
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: #f1f5f9;
+      font-size: 15px;
+      text-align: center;
+      outline: none;
+      margin-bottom: 15px;
+    }
+
     button {
       padding: 12px 26px;
       font-size: 16px;
@@ -103,7 +114,6 @@
       box-shadow: 0 0 25px rgba(74, 222, 128, 0.6);
     }
 
-    /* Chave gerada */
     .chave-container {
       margin-top: 25px;
     }
@@ -120,11 +130,8 @@
       transition: all 0.3s ease;
     }
 
-    #chave:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
+    #chave:hover { background: rgba(255, 255, 255, 0.1); }
 
-    /* Barra decorativa superior */
     .glow-bar {
       position: absolute;
       top: 0;
@@ -142,11 +149,21 @@
       100% { background-position: 100% 50%; }
     }
 
-    /* Animação ao gerar chave */
     @keyframes fadeInKey {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    #mensagem {
+      display: none;
+      margin-top: 10px;
+      font-weight: 500;
+      text-align: center;
+      animation: fadeInKey 0.3s ease;
+    }
+
+    .sucesso { color: #4ade80; }
+    .erro { color: #f87171; }
   </style>
 </head>
 <body>
@@ -155,6 +172,18 @@
   <div class="container">
     <div class="glow-bar"></div>
     <h1>🔐 Gerador de Chave de Acesso</h1>
+
+    <!-- Campo CPF/CNPJ -->
+    <input 
+      type="text" 
+      id="cpfCnpj" 
+      placeholder="Digite seu CPF ou CNPJ"
+      maxlength="18"
+      oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+    >
+
+    <!-- Mensagens -->
+    <p id="mensagem"></p>
 
     <button class="generate-btn" onclick="gerarChave()">Gerar Chave de Acesso</button>
 
@@ -183,26 +212,25 @@
     async function gerarChave() {
       const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
       const msgEl = document.getElementById('mensagem');
-
-      msgEl.style.display = 'none'; // limpa msg anterior
+      msgEl.style.display = 'none';
 
       if (!cpfCnpj) {
         mostrarMensagem('⚠️ Por favor, insira o CPF ou CNPJ antes de gerar a chave.', 'erro');
         return;
       }
 
-      // 🔎 Verifica se CPF/CNPJ já está cadastrado
+      // 🔎 Verifica duplicidade
       const snapshot = await database.ref('cadastro_usuario')
         .orderByChild('cpf_cnpj')
         .equalTo(cpfCnpj)
         .get();
 
       if (snapshot.exists()) {
-        mostrarMensagem('⚠️ CPF ou CNPJ já cadastrado! Você não pode gerar uma nova chave de acesso.', 'erro');
+        mostrarMensagem('⚠️ CPF ou CNPJ já cadastrado! Você não pode gerar uma nova chave.', 'erro');
         return;
       }
 
-      // ✅ Gera nova chave
+      // ✅ Gera nova chave aleatória
       const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let chave = '';
       for (let i = 0; i < 16; i++) {
