@@ -41,8 +41,7 @@
   <div class="container">
     <h1>🔐 Gerador de Chave de Acesso</h1>
 
-    <input type="text" id="cpfCnpj" placeholder="Digite seu CPF ou CNPJ"
-      maxlength="18" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+    <input type="text" id="cpfCnpj" placeholder="Digite seu CPF ou CNPJ" maxlength="18" oninput="formatarCpfCnpj(this)">
 
     <p id="mensagem"></p>
 
@@ -55,15 +54,65 @@
     </div>
   </div>
 
- <script type="module">
-  // Função para validar formato do CNPJ
+  <script>
+  // 🔥 Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAbVghjW4P8Dt8DngDtdmYDeU4680PXf_4",
+    authDomain: "integra-8eaac.firebaseapp.com",
+    databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
+    projectId: "integra-8eaac",
+    storageBucket: "integra-8eaac.appspot.com",
+    messagingSenderId: "613297970798",
+    appId: "1:613297970798:android:116edc2a1c7d9b1ac7107f"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  // 🎭 Máscara automática CPF/CNPJ
+  function formatarCpfCnpj(input) {
+    let valor = input.value.replace(/\D/g, '');
+    if (valor.length <= 11) {
+      // CPF
+      valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+      valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+      valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+      // CNPJ
+      valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+      valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+      valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+      valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    input.value = valor;
+  }
+
+  // ✅ Validação CPF/CNPJ
+  function validarCpfCnpj(valor) {
+    valor = valor.replace(/\D/g, '');
+    if (valor.length === 11) return validarCPF(valor);
+    if (valor.length === 14) return validarCNPJ(valor);
+    return false;
+  }
+
+  function validarCPF(cpf) {
+    if (!cpf || cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+    let soma = 0, resto;
+
+    for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+
+    soma = 0;
+    for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    return resto === parseInt(cpf.substring(10, 11));
+  }
+
   function validarCNPJ(cnpj) {
-    cnpj = cnpj.replace(/[^\d]+/g, '');
-    if (cnpj.length !== 14) return false;
-
-    // Elimina CNPJs inválidos conhecidos
-    if (/^(\d)\1+$/.test(cnpj)) return false;
-
+    if (!cnpj || cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
     let tamanho = cnpj.length - 2;
     let numeros = cnpj.substring(0, tamanho);
     let digitos = cnpj.substring(tamanho);
@@ -74,7 +123,6 @@
       soma += numeros.charAt(tamanho - i) * pos--;
       if (pos < 2) pos = 9;
     }
-
     let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
     if (resultado != digitos.charAt(0)) return false;
 
@@ -82,78 +130,100 @@
     numeros = cnpj.substring(0, tamanho);
     soma = 0;
     pos = tamanho - 7;
-
     for (let i = tamanho; i >= 1; i--) {
       soma += numeros.charAt(tamanho - i) * pos--;
       if (pos < 2) pos = 9;
     }
-
     resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
-    if (resultado != digitos.charAt(1)) return false;
-
-    return true;
+    return resultado == digitos.charAt(1);
   }
 
-  // Função para consultar a API pública da Receita Federal
-  async function consultarCNPJReceita(cnpj) {
+  // 🚀 Geração da Chave
+  async function gerarChave() {
+    const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
+    const msgEl = document.getElementById('mensagem');
+    const btn = document.getElementById('btnGerar');
+    msgEl.style.display = 'none';
+
+    if (!cpfCnpj) {
+      mostrarMensagem('⚠️ Insira o CPF ou CNPJ antes de gerar a chave.', 'erro');
+      return;
+    }
+
+    // 🚫 Verifica validade real
+    if (!validarCpfCnpj(cpfCnpj)) {
+      mostrarMensagem('❌ CPF ou CNPJ inválido. Verifique os números informados.', 'erro');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Verificando...";
+
     try {
-      const cnpjLimpo = cnpj.replace(/\D/g, '');
-      const resposta = await fetch(`https://publica.cnpj.ws/cnpj/${cnpjLimpo}`);
-      
-      if (!resposta.ok) {
-        throw new Error('CNPJ não encontrado ou inválido.');
+      const ref = database.ref("chave_acesso");
+      const snapshot = await ref.once("value");
+
+      let cpfJaExiste = false;
+      if (snapshot.exists()) {
+        snapshot.forEach(child => {
+          const data = child.val();
+          if (data.cpf_cnpj === cpfCnpj.replace(/\D/g, '')) cpfJaExiste = true;
+        });
       }
 
-      const dados = await resposta.json();
-      if (dados && dados.razao_social) {
-        return {
-          valido: true,
-          razao_social: dados.razao_social,
-          nome_fantasia: dados.estabelecimento?.nome_fantasia || '',
-          situacao: dados.estabelecimento?.situacao_cadastral || 'DESCONHECIDA',
-        };
-      } else {
-        return { valido: false };
+      if (cpfJaExiste) {
+        mostrarMensagem("⚠️ CPF ou CNPJ já cadastrado. Você não pode gerar uma nova chave.", "erro");
+        btn.disabled = false;
+        btn.innerText = "Gerar Chave de Acesso";
+        return;
       }
-    } catch (erro) {
-      console.error('Erro ao consultar CNPJ:', erro);
-      return { valido: false };
+
+      // ✅ Gera chave
+      const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let chave = "";
+      for (let i = 0; i < 16; i++) {
+        chave += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+      }
+
+      const hoje = new Date();
+      const validade = new Date(hoje);
+      validade.setFullYear(validade.getFullYear() + 1);
+      const validadeFormatada = validade.toLocaleDateString("pt-BR");
+
+      await database.ref("chave_acesso").push({
+        chave: chave,
+        cpf_cnpj: cpfCnpj.replace(/\D/g, ''),
+        validade: validadeFormatada,
+        dataCadastro: new Date().toLocaleString("pt-BR")
+      });
+
+      document.getElementById("chave").innerText = chave;
+      document.getElementById("validade").innerText = "📅 Válida até: " + validadeFormatada;
+      document.getElementById("copyBtn").style.display = "inline-block";
+      mostrarMensagem("✅ Chave gerada e salva com sucesso!", "sucesso");
+
+    } catch (error) {
+      console.error(error);
+      mostrarMensagem("❌ Erro ao salvar no Firebase.", "erro");
     }
+
+    btn.disabled = false;
+    btn.innerText = "Gerar Chave de Acesso";
   }
 
-  // Função principal (executa antes de gerar chave)
-  async function validarCNPJAntesGerar() {
-    const inputCNPJ = document.getElementById('cnpj');
-    const cnpj = inputCNPJ.value.trim();
-
-    if (!validarCNPJ(cnpj)) {
-      alert('❌ CNPJ inválido! Verifique o número digitado.');
-      return false;
-    }
-
-    // Consulta a base da Receita Federal
-    const resultado = await consultarCNPJReceita(cnpj);
-    if (!resultado.valido) {
-      alert('⚠️ CNPJ não encontrado na base da Receita Federal. Digite um CNPJ válido.');
-      return false;
-    }
-
-    if (resultado.situacao !== 'ATIVA') {
-      alert(`⚠️ Este CNPJ está com situação cadastral: ${resultado.situacao}`);
-      return false;
-    }
-
-    alert(`✅ CNPJ válido!\nRazão Social: ${resultado.razao_social}`);
-    return true;
+  function copiarChave() {
+    const texto = document.getElementById("chave").innerText + "\n" +
+                  document.getElementById("validade").innerText;
+    navigator.clipboard.writeText(texto);
+    mostrarMensagem("🔑 Chave copiada com sucesso!", "sucesso");
   }
 
-  // Exemplo de uso no botão de gerar chave
-  document.getElementById('gerarChaveBtn').addEventListener('click', async () => {
-    const valido = await validarCNPJAntesGerar();
-    if (valido) {
-      gerarChaveAcesso(); // substitua pela sua função que cria a chave
-    }
-  });
-</script>
+  function mostrarMensagem(texto, tipo) {
+    const msgEl = document.getElementById("mensagem");
+    msgEl.innerText = texto;
+    msgEl.className = tipo;
+    msgEl.style.display = "block";
+  }
+  </script>
 </body>
 </html>
