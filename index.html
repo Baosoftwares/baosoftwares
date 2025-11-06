@@ -178,74 +178,87 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAp_CwX7xaT-VSLqy-Fk9mXpDX-mp4Eyr8",
-      authDomain: "integra-8eaac.firebaseapp.com",
-      databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
-      projectId: "integra-8eaac",
-      storageBucket: "integra-8eaac.appspot.com",
-      messagingSenderId: "613297970798",
-      appId: "1:613297970798:web:616c06c3c85e4ce9c7107f",
-      measurementId: "G-RJCSCN6L0L"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAp_CwX7xaT-VSLqy-Fk9mXpDX-mp4Eyr8",
+    authDomain: "integra-8eaac.firebaseapp.com",
+    databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
+    projectId: "integra-8eaac",
+    storageBucket: "integra-8eaac.appspot.com",
+    messagingSenderId: "613297970798",
+    appId: "1:613297970798:web:616c06c3c85e4ce9c7107f",
+    measurementId: "G-RJCSCN6L0L"
+  };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+  const app = firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-    function gerarChave() {
-      const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
+  async function gerarChave() {
+    const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
 
-      if (!cpfCnpj) {
-        alert('Por favor, insira o CPF ou CNPJ antes de gerar a chave.');
-        return;
-      }
-
-      const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let chave = '';
-      const tamanho = 16;
-
-      for (let i = 0; i < tamanho; i++) {
-        chave += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-      }
-
-      const hoje = new Date();
-      const validade = new Date(hoje.setFullYear(hoje.getFullYear() + 1));
-      const validadeFormatada = validade.toLocaleDateString('pt-BR');
-
-      const chaveEl = document.getElementById('chave');
-      const validadeEl = document.getElementById('validade');
-      const copyBtn = document.getElementById('copyBtn');
-
-      chaveEl.innerText = chave;
-      validadeEl.innerText = '📅 Válida até: ' + validadeFormatada;
-      copyBtn.style.display = 'inline-block';
-
-      chaveEl.style.animation = "fadeInKey 0.5s ease";
-      validadeEl.style.animation = "fadeInKey 0.8s ease";
-
-      enviarParaFirebase(chave, validadeFormatada, cpfCnpj);
+    if (!cpfCnpj) {
+      alert('Por favor, insira o CPF ou CNPJ antes de gerar a chave.');
+      return;
     }
 
-    function enviarParaFirebase(chave, validade, cpfCnpj) {
-      const novoCadastroRef = database.ref('cadastro_usuario').push();
-      novoCadastroRef.set({
-        chave: chave,
-        validade: validade,
-        cpf_cnpj: cpfCnpj,
-        dataCadastro: new Date().toLocaleString('pt-BR')
-      }).then(() => console.log('✅ Chave salva com sucesso!'))
-        .catch((error) => console.error('❌ Erro:', error));
+    // 🔎 Verifica se CPF/CNPJ já está cadastrado
+    const snapshot = await database.ref('cadastro_usuario')
+      .orderByChild('cpf_cnpj')
+      .equalTo(cpfCnpj)
+      .get();
+
+    if (snapshot.exists()) {
+      alert('⚠️ CPF ou CNPJ já cadastrado! Você não pode gerar uma nova chave de acesso.');
+      return;
     }
 
-    function copiarChave() {
-      const chaveTexto = document.getElementById('chave').innerText;
-      const validadeTexto = document.getElementById('validade').innerText;
-      const textoCompleto = chaveTexto + '\n' + validadeTexto;
+    // ✅ CPF/CNPJ não existe — pode gerar nova chave
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let chave = '';
+    const tamanho = 16;
 
-      navigator.clipboard.writeText(textoCompleto).then(() => {
-        alert('🔑 Chave copiada com sucesso!');
-      });
+    for (let i = 0; i < tamanho; i++) {
+      chave += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
     }
-  </script>
+
+    const hoje = new Date();
+    const validade = new Date(hoje.setFullYear(hoje.getFullYear() + 1));
+    const validadeFormatada = validade.toLocaleDateString('pt-BR');
+
+    const chaveEl = document.getElementById('chave');
+    const validadeEl = document.getElementById('validade');
+    const copyBtn = document.getElementById('copyBtn');
+
+    chaveEl.innerText = chave;
+    validadeEl.innerText = '📅 Válida até: ' + validadeFormatada;
+    copyBtn.style.display = 'inline-block';
+
+    chaveEl.style.animation = "fadeInKey 0.5s ease";
+    validadeEl.style.animation = "fadeInKey 0.8s ease";
+
+    // 🔥 Salva no Firebase
+    enviarParaFirebase(chave, validadeFormatada, cpfCnpj);
+  }
+
+  function enviarParaFirebase(chave, validade, cpfCnpj) {
+    const novoCadastroRef = database.ref('cadastro_usuario').push();
+    novoCadastroRef.set({
+      chave: chave,
+      validade: validade,
+      cpf_cnpj: cpfCnpj,
+      dataCadastro: new Date().toLocaleString('pt-BR')
+    }).then(() => console.log('✅ Chave salva com sucesso!'))
+      .catch((error) => console.error('❌ Erro ao salvar chave:', error));
+  }
+
+  function copiarChave() {
+    const chaveTexto = document.getElementById('chave').innerText;
+    const validadeTexto = document.getElementById('validade').innerText;
+    const textoCompleto = chaveTexto + '\n' + validadeTexto;
+
+    navigator.clipboard.writeText(textoCompleto).then(() => {
+      alert('🔑 Chave copiada com sucesso!');
+    });
+  }
+</script>
 </body>
 </html>
