@@ -149,17 +149,11 @@
       100% { background-position: 100% 50%; }
     }
 
-    @keyframes fadeInKey {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     #mensagem {
       display: none;
       margin-top: 10px;
       font-weight: 500;
       text-align: center;
-      animation: fadeInKey 0.3s ease;
     }
 
     .sucesso { color: #4ade80; }
@@ -173,7 +167,6 @@
     <div class="glow-bar"></div>
     <h1>🔐 Gerador de Chave de Acesso</h1>
 
-    <!-- Campo CPF/CNPJ -->
     <input 
       type="text" 
       id="cpfCnpj" 
@@ -182,7 +175,6 @@
       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
     >
 
-    <!-- Mensagens -->
     <p id="mensagem"></p>
 
     <button class="generate-btn" onclick="gerarChave()">Gerar Chave de Acesso</button>
@@ -195,6 +187,7 @@
   </div>
 
   <script>
+    // 🔥 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCvLoq9mG81XJ1mRFH9UpTFJQZz7-J5RbE",
       authDomain: "testedejogo-f29a5.firebaseapp.com",
@@ -206,7 +199,7 @@
       measurementId: "G-TEZZF6WHE6"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
     async function gerarChave() {
@@ -215,49 +208,54 @@
       msgEl.style.display = 'none';
 
       if (!cpfCnpj) {
+        alert("⚠️ Por favor, insira o CPF ou CNPJ antes de gerar a chave.");
         mostrarMensagem('⚠️ Por favor, insira o CPF ou CNPJ antes de gerar a chave.', 'erro');
         return;
       }
 
-      // 🔎 Verifica duplicidade
-      const snapshot = await database.ref('cadastro_usuario')
-        .orderByChild('cpf_cnpj')
-        .equalTo(cpfCnpj)
-        .get();
+      try {
+        // 🔎 Verifica duplicidade no Firebase
+        const snapshot = await database.ref('cadastro_usuario')
+          .orderByChild('cpf_cnpj')
+          .equalTo(cpfCnpj)
+          .get();
 
-      if (snapshot.exists()) {
-        mostrarMensagem('⚠️ CPF ou CNPJ já cadastrado! Você não pode gerar uma nova chave.', 'erro');
-        return;
+        if (snapshot.exists()) {
+          alert("❌ Este CPF ou CNPJ já está cadastrado!");
+          mostrarMensagem('⚠️ CPF ou CNPJ já cadastrado! Você não pode gerar uma nova chave.', 'erro');
+          return;
+        }
+
+        // ✅ Gera nova chave
+        const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let chave = '';
+        for (let i = 0; i < 16; i++) {
+          chave += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+
+        const hoje = new Date();
+        const validade = new Date(hoje.setFullYear(hoje.getFullYear() + 1));
+        const validadeFormatada = validade.toLocaleDateString('pt-BR');
+
+        // Exibe na tela
+        document.getElementById('chave').innerText = chave;
+        document.getElementById('validade').innerText = '📅 Válida até: ' + validadeFormatada;
+        document.getElementById('copyBtn').style.display = 'inline-block';
+        mostrarMensagem('✅ Chave gerada e salva com sucesso!', 'sucesso');
+
+        // Envia para o Firebase
+        await database.ref('cadastro_usuario').push({
+          chave: chave,
+          validade: validadeFormatada,
+          cpf_cnpj: cpfCnpj,
+          dataCadastro: new Date().toLocaleString('pt-BR')
+        });
+
+      } catch (error) {
+        alert("❌ Erro ao acessar o banco de dados.");
+        console.error(error);
+        mostrarMensagem('❌ Erro ao acessar o Firebase.', 'erro');
       }
-
-      // ✅ Gera nova chave aleatória
-      const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let chave = '';
-      for (let i = 0; i < 16; i++) {
-        chave += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-      }
-
-      const hoje = new Date();
-      const validade = new Date(hoje.setFullYear(hoje.getFullYear() + 1));
-      const validadeFormatada = validade.toLocaleDateString('pt-BR');
-
-      document.getElementById('chave').innerText = chave;
-      document.getElementById('validade').innerText = '📅 Válida até: ' + validadeFormatada;
-      document.getElementById('copyBtn').style.display = 'inline-block';
-
-      mostrarMensagem('✅ Chave gerada e salva com sucesso!', 'sucesso');
-
-      enviarParaFirebase(chave, validadeFormatada, cpfCnpj);
-    }
-
-    function enviarParaFirebase(chave, validade, cpfCnpj) {
-      database.ref('cadastro_usuario').push({
-        chave: chave,
-        validade: validade,
-        cpf_cnpj: cpfCnpj,
-        dataCadastro: new Date().toLocaleString('pt-BR')
-      }).then(() => console.log('✅ Chave salva com sucesso!'))
-        .catch((error) => console.error('❌ Erro ao salvar chave:', error));
     }
 
     function copiarChave() {
