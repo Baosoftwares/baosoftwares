@@ -85,23 +85,26 @@
     btn.innerText = "Verificando...";
 
     try {
-      // 🔍 Verifica se CPF/CNPJ já existe
+      // 🔍 Busca todos os registros e verifica se já existe o mesmo CPF/CNPJ
       const ref = database.ref("chave_acesso");
-      const snapshot = await ref.orderByChild("cpf_cnpj").equalTo(cpfCnpj).once("value");
+      const snapshot = await ref.once("value");
 
-      let existe = false;
-      snapshot.forEach(child => {
-        if (child.val().cpf_cnpj === cpfCnpj) {
-          existe = true;
-        }
-      });
+      let cpfJaExiste = false;
+      if (snapshot.exists()) {
+        snapshot.forEach(child => {
+          const data = child.val();
+          if (data.cpf_cnpj === cpfCnpj) {
+            cpfJaExiste = true;
+          }
+        });
+      }
 
-      if (existe) {
-        alert('⚠️ CPF ou CNPJ já cadastrado. Você não pode gerar uma nova chave de acesso.');
-        mostrarMensagem('⚠️ CPF ou CNPJ já cadastrado. Você não pode gerar uma nova chave.', 'erro');
+      if (cpfJaExiste) {
+        alert("⚠️ CPF ou CNPJ já cadastrado. Você não pode gerar uma nova chave de acesso.");
+        mostrarMensagem("⚠️ CPF ou CNPJ já cadastrado. Você não pode gerar uma nova chave.", "erro");
         btn.disabled = false;
         btn.innerText = "Gerar Chave de Acesso";
-        return;
+        return; // 🚫 Sai da função aqui — não gera nem salva
       }
 
       // ✅ Gera nova chave aleatória
