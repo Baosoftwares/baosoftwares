@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-  <style>
+    <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI Variable',Segoe UI,Tahoma,Verdana,sans-serif;}
     body{height:100vh;display:flex;align-items:center;justify-content:center;
       background:radial-gradient(circle at top left,#1e3a8a,#0f172a 80%);
@@ -55,43 +55,31 @@
   </div>
 
   <script>
-
-// --- PASSO 1: CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE ---
-// SUBSTITUA OS VALORES ABAIXO PELAS SUAS CREDENCIAIS REAIS DO FIREBASE
+// Seus dados de configuração do Firebase (já inseridos por você)
 const firebaseConfig = {
-    apiKey: "AIzaSyAbVghjW4P8Dt8DngDtdmYDeU4680PXf_4",
-    authDomain: "integra-8eaac.firebaseapp.com",
-    databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
-    projectId: "integra-8eaac",
-    storageBucket: "integra-8eaac.appspot.com",
-    messagingSenderId: "613297970798",
-    appId: "1:613297970798:android:116edc2a1c7d9b1ac7107f"
-  };
+    apiKey: "AIzaSyAbVghjW4P8Dt8DngDtdmYDeU4680PXf_4",
+    authDomain: "integra-8eaac.firebaseapp.com",
+    databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
+    projectId: "integra-8eaac",
+    storageBucket: "integra-8eaac.appspot.com",
+    messagingSenderId: "613297970798",
+    appId: "1:613297970798:android:116edc2a1c7d9b1ac7107f"
+  };
 
 // Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
-
-// Obtém a referência ao serviço de banco de dados
 const database = firebase.database();
 
 
-// --- FUNÇÕES AUXILIARES FALTANTES ---
+// --- FUNÇÕES AUXILIARES ---
 
-/**
- * Exibe uma mensagem de status na tela.
- * @param {string} texto - A mensagem a ser exibida.
- * @param {string} tipo - O tipo da mensagem ('sucesso' ou 'erro').
- */
 function mostrarMensagem(texto, tipo) {
   const msgEl = document.getElementById('mensagem');
   msgEl.innerText = texto;
-  msgEl.className = tipo; 
+  msgEl.className = tipo; 
   msgEl.style.display = 'block';
 }
 
-/**
- * Copia o conteúdo da chave de acesso para a área de transferência.
- */
 function copiarChave() {
   const chave = document.getElementById("chave").innerText;
   if (chave) {
@@ -104,59 +92,55 @@ function copiarChave() {
   }
 }
 
-/**
- * FUNÇÃO ESSENCIAL FALTANTE: Valida matematicamente CPF ou CNPJ.
- * @param {string} doc - CPF (11 dígitos) ou CNPJ (14 dígitos)
- * @returns {boolean} - True se o documento for válido, False caso contrário.
- */
+// --- FUNÇÃO DE VALIDAÇÃO MATEMÁTICA (O QUE ESTAVA FALTANDO) ---
 function validarCpfCnpj(doc) {
-  doc = doc.replace(/[^\d]/g, '');
+  doc = doc.replace(/[^\d]/g, '');
 
-  if (doc.length === 11) {
-    // Validação de CPF
-    if (doc.split('').every(c => c === doc[0])) return false;
-    let soma = 0;
-    let resto;
-    for (let i = 1; i <= 9; i++) soma += parseInt(doc.substring(i - 1, i)) * (11 - i);
-    resto = (soma * 10) % 11;
-    if ((resto === 10) || (resto === 11)) resto = 0;
-    if (resto !== parseInt(doc.substring(9, 10))) return false;
-    soma = 0;
-    for (let i = 1; i <= 10; i++) soma += parseInt(doc.substring(i - 1, i)) * (12 - i);
-    resto = (soma * 10) % 11;
-    if ((resto === 10) || (resto === 11)) resto = 0;
-    if (resto !== parseInt(doc.substring(10, 11))) return false;
-    return true;
-  } else if (doc.length === 14) {
-    // Validação de CNPJ
-    if (doc.split('').every(c => c === doc[0])) return false;
-    let tamanho = doc.length - 2;
-    let numeros = doc.substring(0, tamanho);
-    let digitos = doc.substring(tamanho);
-    let soma = 0;
-    let pos = tamanho - 7;
-    for (let i = tamanho; i >= 1; i--) {
-      soma += numeros.charAt(tamanho - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
-    if (resultado !== parseInt(digitos.charAt(0))) return false;
-    tamanho = tamanho + 1;
-    numeros = doc.substring(0, tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-    for (let i = tamanho; i >= 1; i--) {
-      soma += numeros.charAt(tamanho - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
-    if (resultado !== parseInt(digitos.charAt(1))) return false;
-    return true;
-  }
-  return false; // Não é 11 nem 14 dígitos
+  if (doc.length === 11) {
+    // Validação de CPF
+    if (doc.split('').every(c => c === doc[0])) return false;
+    let soma = 0;
+    let resto;
+    for (let i = 1; i <= 9; i++) soma += parseInt(doc.substring(i - 1, i)) * (11 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(doc.substring(9, 10))) return false;
+    soma = 0;
+    for (let i = 1; i <= 10; i++) soma += parseInt(doc.substring(i - 1, i)) * (12 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(doc.substring(10, 11))) return false;
+    return true;
+  } else if (doc.length === 14) {
+    // Validação de CNPJ
+    if (doc.split('').every(c => c === doc[0])) return false;
+    let tamanho = doc.length - 2;
+    let numeros = doc.substring(0, tamanho);
+    let digitos = doc.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if (resultado !== parseInt(digitos.charAt(0))) return false;
+    tamanho = tamanho + 1;
+    numeros = doc.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if (resultado !== parseInt(digitos.charAt(1))) return false;
+    return true;
+  }
+  return false;
 }
 
-// --- FUNÇÃO PRINCIPAL CORRIGIDA ---
+// --- FUNÇÃO PRINCIPAL ---
 async function gerarChave() {
   const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
   const msgEl = document.getElementById('mensagem');
@@ -171,7 +155,7 @@ async function gerarChave() {
 
   const somenteNumeros = cpfCnpj.replace(/\D/g, '');
 
-  // 2. Verificação de validade matemática (AGORA FUNCIONA)
+  // 2. Verificação de validade matemática (AGORA TRATA OS DOCUMENTOS INVÁLIDOS)
   if (!validarCpfCnpj(somenteNumeros)) {
     mostrarMensagem('❌ CPF ou CNPJ inválido. Verifique os números informados.', 'erro');
     return;
@@ -194,7 +178,6 @@ async function gerarChave() {
         return;
       }
     } catch (error) {
-      // Captura o erro da API (Ex: 404 Not Found)
       mostrarMensagem("❌ CNPJ inexistente ou erro ao consultar API oficial.", "erro");
       btn.disabled = false;
       btn.innerText = "Gerar Chave de Acesso";
@@ -203,7 +186,7 @@ async function gerarChave() {
   }
 
   try {
-    // 4. Verifica duplicidade no Firebase (AGORA USA A VARIÁVEL 'database')
+    // 4. Verifica duplicidade no Firebase
     const ref = database.ref("chave_acesso");
     const snapshot = await ref.once("value");
 
@@ -248,7 +231,7 @@ async function gerarChave() {
 
   } catch (error) {
     console.error("Erro no Firebase ou lógica:", error);
-    mostrarMensagem("❌ Erro no sistema (Firebase não configurado ou erro de rede).", "erro");
+    mostrarMensagem("❌ Erro no sistema (Verifique sua conexão e as regras do Firebase).", "erro");
   }
 
   btn.disabled = false;
