@@ -11,93 +11,57 @@
 
   <style>
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      margin: 0; padding: 0; box-sizing: border-box;
       font-family: 'Segoe UI Variable', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     body {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      height: 100vh; display: flex; align-items: center; justify-content: center;
       background: radial-gradient(circle at top left, #1e3a8a, #0f172a 80%);
-      color: #f1f5f9;
-      overflow: hidden;
+      color: #f1f5f9; overflow: hidden;
     }
 
     .background-blur {
-      position: absolute;
-      width: 250%;
-      height: 250%;
+      position: absolute; width: 250%; height: 250%;
       background: conic-gradient(from 180deg, #60a5fa, #1e3a8a, #1e293b, #60a5fa);
-      filter: blur(160px);
-      opacity: 0.3;
-      animation: rotate 15s linear infinite;
-      z-index: 0;
+      filter: blur(160px); opacity: 0.3; animation: rotate 15s linear infinite; z-index: 0;
     }
 
-    @keyframes rotate {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     .container {
-      position: relative;
-      width: 420px;
-      padding: 40px 30px;
-      border-radius: 20px;
-      background: rgba(30, 41, 59, 0.85);
+      position: relative; width: 420px; padding: 40px 30px;
+      border-radius: 20px; background: rgba(30, 41, 59, 0.85);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      z-index: 1;
-      transition: transform 0.4s ease;
+      text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 1; transition: transform 0.4s ease;
     }
-
     .container:hover { transform: translateY(-4px); }
 
     h1 {
-      color: #60a5fa;
-      font-weight: 600;
-      font-size: 1.6rem;
-      margin-bottom: 25px;
-      text-shadow: 0 0 10px rgba(96, 165, 250, 0.6);
+      color: #60a5fa; font-weight: 600; font-size: 1.6rem;
+      margin-bottom: 25px; text-shadow: 0 0 10px rgba(96, 165, 250, 0.6);
     }
 
     input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
+      width: 100%; padding: 12px; border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.08);
-      color: #f1f5f9;
-      font-size: 15px;
-      text-align: center;
-      outline: none;
-      margin-bottom: 15px;
+      background: rgba(255,255,255,0.08); color: #f1f5f9;
+      font-size: 15px; text-align: center; outline: none; margin-bottom: 15px;
     }
 
     button {
-      padding: 12px 26px;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 12px;
+      padding: 12px 26px; font-size: 16px; font-weight: 600;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: all 0.3s ease; margin-top: 12px;
     }
 
     button:active { transform: scale(0.96); }
 
     .generate-btn {
       background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-      color: white;
-      box-shadow: 0 0 18px rgba(37, 99, 235, 0.4);
+      color: white; box-shadow: 0 0 18px rgba(37, 99, 235, 0.4);
     }
-
     .generate-btn:hover {
       background: linear-gradient(135deg, #60a5fa, #2563eb);
       box-shadow: 0 0 25px rgba(96, 165, 250, 0.7);
@@ -105,57 +69,35 @@
 
     .copy-btn {
       background: linear-gradient(135deg, #22c55e, #15803d);
-      color: #f8fafc;
-      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+      color: #f8fafc; box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
     }
-
     .copy-btn:hover {
       background: linear-gradient(135deg, #4ade80, #16a34a);
       box-shadow: 0 0 25px rgba(74, 222, 128, 0.6);
     }
 
-    .chave-container {
-      margin-top: 25px;
-    }
+    .chave-container { margin-top: 25px; }
 
     #chave, #validade {
       background: rgba(255, 255, 255, 0.06);
-      padding: 14px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      word-break: break-word;
+      padding: 14px; border-radius: 8px; margin-bottom: 10px;
+      font-weight: 600; letter-spacing: 1px; word-break: break-word;
       border: 1px solid rgba(255, 255, 255, 0.1);
       transition: all 0.3s ease;
     }
-
     #chave:hover { background: rgba(255, 255, 255, 0.1); }
 
     .glow-bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 5px;
+      position: absolute; top: 0; left: 0; width: 100%; height: 5px;
       background: linear-gradient(90deg, #3b82f6, #60a5fa, #2563eb, #3b82f6);
-      background-size: 300%;
-      animation: glowMove 5s linear infinite;
+      background-size: 300%; animation: glowMove 5s linear infinite;
       border-radius: 10px 10px 0 0;
     }
-
     @keyframes glowMove {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
+      0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; }
     }
 
-    #mensagem {
-      display: none;
-      margin-top: 10px;
-      font-weight: 500;
-      text-align: center;
-    }
-
+    #mensagem { display: none; margin-top: 10px; font-weight: 500; text-align: center; }
     .sucesso { color: #4ade80; }
     .erro { color: #f87171; }
   </style>
@@ -187,8 +129,8 @@
   </div>
 
   <script>
-    // 🔥 Firebase config (novo banco integra-8eaac)
-     const firebaseConfig = {
+    // 🔥 Config Firebase
+    const firebaseConfig = {
       apiKey: "AIzaSyAbVghjW4P8Dt8DngDtdmYDeU4680PXf_4",
       authDomain: "integra-8eaac.firebaseapp.com",
       databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
@@ -212,6 +154,15 @@
       }
 
       try {
+        // 🔍 Verifica se CPF/CNPJ já existe
+        const snapshot = await database.ref('chave_acesso').orderByChild('cpf_cnpj').equalTo(cpfCnpj).once('value');
+
+        if (snapshot.exists()) {
+          alert('⚠️ CPF/CNPJ já cadastrado, você não pode gerar uma nova chave de acesso.');
+          mostrarMensagem('⚠️ CPF/CNPJ já cadastrado.', 'erro');
+          return;
+        }
+
         // ✅ Gera nova chave
         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let chave = '';
@@ -229,7 +180,7 @@
         document.getElementById('copyBtn').style.display = 'inline-block';
         mostrarMensagem('✅ Chave gerada e salva com sucesso!', 'sucesso');
 
-        // 🔄 Envia para Firebase (coleção chave_acesso)
+        // 💾 Envia para Firebase
         await database.ref('chave_acesso').push({
           chave: chave,
           validade: validadeFormatada,
