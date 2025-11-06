@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerador de Chave de Acesso</title>
+  <title>Gerador de Chave de Acesso - Baoh Food Checkout</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
   <style>
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      margin: 0; padding: 0; box-sizing: border-box;
       font-family: 'Segoe UI Variable', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
@@ -24,7 +23,6 @@
       overflow: hidden;
     }
 
-    /* Efeito de fundo luminoso */
     .background-blur {
       position: absolute;
       width: 250%;
@@ -41,7 +39,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Container principal */
     .container {
       position: relative;
       width: 420px;
@@ -55,9 +52,7 @@
       transition: transform 0.4s ease;
     }
 
-    .container:hover {
-      transform: translateY(-4px);
-    }
+    .container:hover { transform: translateY(-4px); }
 
     h1 {
       color: #60a5fa;
@@ -67,7 +62,27 @@
       text-shadow: 0 0 10px rgba(96, 165, 250, 0.6);
     }
 
-    /* Botões */
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      font-size: 15px;
+      text-align: center;
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 10px rgba(96, 165, 250, 0.4);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
     button {
       padding: 12px 26px;
       font-size: 16px;
@@ -103,7 +118,6 @@
       box-shadow: 0 0 25px rgba(74, 222, 128, 0.6);
     }
 
-    /* Chave gerada */
     .chave-container {
       margin-top: 25px;
     }
@@ -124,7 +138,6 @@
       background: rgba(255, 255, 255, 0.1);
     }
 
-    /* Barra decorativa superior */
     .glow-bar {
       position: absolute;
       top: 0;
@@ -142,7 +155,6 @@
       100% { background-position: 100% 50%; }
     }
 
-    /* Animação ao gerar chave */
     @keyframes fadeInKey {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -154,8 +166,8 @@
 
   <div class="container">
     <div class="glow-bar"></div>
-    <h1>🔐 Gerador de Chave de Acesso</h1>
-
+    <h1>🔐 Baoh Food Checkout</h1>
+    <input type="text" id="cpfCnpj" placeholder="Digite seu CPF ou CNPJ">
     <button class="generate-btn" onclick="gerarChave()">Gerar Chave de Acesso</button>
 
     <div id="chaveContainer" class="chave-container">
@@ -167,20 +179,27 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCvLoq9mG81XJ1mRFH9UpTFJQZz7-J5RbE",
-      authDomain: "testedejogo-f29a5.firebaseapp.com",
-      databaseURL: "https://testedejogo-f29a5-default-rtdb.firebaseio.com",
-      projectId: "testedejogo-f29a5",
-      storageBucket: "testedejogo-f29a5.firebasestorage.app",
-      messagingSenderId: "441455928710",
-      appId: "1:441455928710:web:25029255c933e2d343f807",
-      measurementId: "G-TEZZF6WHE6"
+      apiKey: "AIzaSyAp_CwX7xaT-VSLqy-Fk9mXpDX-mp4Eyr8",
+      authDomain: "integra-8eaac.firebaseapp.com",
+      databaseURL: "https://integra-8eaac-default-rtdb.firebaseio.com",
+      projectId: "integra-8eaac",
+      storageBucket: "integra-8eaac.appspot.com",
+      messagingSenderId: "613297970798",
+      appId: "1:613297970798:web:616c06c3c85e4ce9c7107f",
+      measurementId: "G-RJCSCN6L0L"
     };
 
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
     function gerarChave() {
+      const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
+
+      if (!cpfCnpj) {
+        alert('Por favor, insira o CPF ou CNPJ antes de gerar a chave.');
+        return;
+      }
+
       const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let chave = '';
       const tamanho = 16;
@@ -204,14 +223,15 @@
       chaveEl.style.animation = "fadeInKey 0.5s ease";
       validadeEl.style.animation = "fadeInKey 0.8s ease";
 
-      enviarParaFirebase(chave, validadeFormatada);
+      enviarParaFirebase(chave, validadeFormatada, cpfCnpj);
     }
 
-    function enviarParaFirebase(chave, validade) {
+    function enviarParaFirebase(chave, validade, cpfCnpj) {
       const novoCadastroRef = database.ref('cadastro_usuario').push();
       novoCadastroRef.set({
         chave: chave,
         validade: validade,
+        cpf_cnpj: cpfCnpj,
         dataCadastro: new Date().toLocaleString('pt-BR')
       }).then(() => console.log('✅ Chave salva com sucesso!'))
         .catch((error) => console.error('❌ Erro:', error));
