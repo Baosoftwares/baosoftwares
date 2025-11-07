@@ -96,7 +96,8 @@
         return;
       }
 
-      db.ref("chaves/" + cpfCnpj).get().then(snapshot => {
+      // 🔍 Verifica se já existe chave (usando .once em vez de .get)
+      db.ref("chaves/" + cpfCnpj).once("value").then(snapshot => {
         if (snapshot.exists()) {
           const dados = snapshot.val();
           document.getElementById("chaveGerada").innerHTML = `🗝️ Chave de Acesso: <b>${dados.chave}</b>`;
@@ -126,6 +127,9 @@
             })
             .catch(error => alert("Erro ao salvar no banco: " + error));
         }
+      }).catch(error => {
+        console.error("Erro ao acessar o Firebase:", error);
+        alert("Erro ao conectar ao Firebase. Verifique o console.");
       });
     }
 
