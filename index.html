@@ -158,20 +158,22 @@
 
       // 🌐 Validação real de CNPJ via API
       if (tipo === "CNPJ") {
-        fetch(`https://publica.cnpj.ws/cnpj/${cpfCnpj}`)
-          .then(response => {
-            if (!response.ok) throw new Error("CNPJ não encontrado");
-            return response.json();
-          })
-          .then(data => {
-            if (data.razao_social) {
-              console.log("✅ CNPJ válido e existente:", data.razao_social);
-              salvarChaveNoFirebase(cpfCnpj, tipo);
-            } else {
-              alert("❌ CNPJ não encontrado na base pública!");
-            }
-          })
-          .catch(() => alert("❌ CNPJ inválido ou não encontrado!"));
+        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://publica.cnpj.ws/cnpj/${cpfCnpj}`)}`)
+  .then(response => {
+    if (!response.ok) throw new Error("Erro ao acessar API CNPJ");
+    return response.json();
+  })
+  .then(data => {
+    const json = JSON.parse(data.contents); // conteúdo da resposta original
+
+    if (json.razao_social) {
+      console.log("✅ CNPJ válido e existente:", json.razao_social);
+      salvarChaveNoFirebase(cpfCnpj, tipo);
+    } else {
+      alert("❌ CNPJ não encontrado na base pública!");
+    }
+  })
+  .catch(() => alert("❌ CNPJ inválido ou não encontrado na base pública!"));
         return; // Interrompe até validar CNPJ
       }
 
