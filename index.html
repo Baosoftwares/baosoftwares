@@ -87,7 +87,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ✅ Função de validação de CPF (corrigida)
+    // ✅ Validação matemática de CPF
     function validarCPF(cpf) {
       cpf = cpf.replace(/[^\d]+/g, '');
       if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
@@ -105,7 +105,7 @@
       return resto === parseInt(cpf[10]);
     }
 
-    // ✅ Função de validação de CNPJ (corrigida)
+    // ✅ Validação matemática de CNPJ
     function validarCNPJ(cnpj) {
       cnpj = cnpj.replace(/[^\d]+/g, '');
       if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
@@ -123,7 +123,7 @@
       let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
       if (resultado !== parseInt(digitos.charAt(0))) return false;
 
-      tamanho = tamanho + 1;
+      tamanho++;
       numeros = cnpj.substring(0, tamanho);
       soma = 0;
       pos = tamanho - 7;
@@ -135,6 +135,7 @@
       return resultado === parseInt(digitos.charAt(1));
     }
 
+    // 🧩 Função principal
     function gerarChave() {
       const cpfCnpj = document.getElementById("cpfCnpjInput").value.trim().replace(/[^\d]+/g, "");
       if (!cpfCnpj) {
@@ -148,14 +149,38 @@
         return;
       }
 
-      // ✅ Bloqueia se for inválido
+      // ✅ Validação matemática
       const valido = tipo === "CPF" ? validarCPF(cpfCnpj) : validarCNPJ(cpfCnpj);
       if (!valido) {
         alert(`${tipo} informado é inválido!`);
         return;
       }
 
-      // 🔍 Verifica se já existe chave
+      // 🌐 Validação real de CNPJ via API
+      if (tipo === "CNPJ") {
+        fetch(`https://publica.cnpj.ws/cnpj/${cpfCnpj}`)
+          .then(response => {
+            if (!response.ok) throw new Error("CNPJ não encontrado");
+            return response.json();
+          })
+          .then(data => {
+            if (data.razao_social) {
+              console.log("✅ CNPJ válido e existente:", data.razao_social);
+              salvarChaveNoFirebase(cpfCnpj, tipo);
+            } else {
+              alert("❌ CNPJ não encontrado na base pública!");
+            }
+          })
+          .catch(() => alert("❌ CNPJ inválido ou não encontrado!"));
+        return; // Interrompe até validar CNPJ
+      }
+
+      // CPF segue direto para o Firebase
+      salvarChaveNoFirebase(cpfCnpj, tipo);
+    }
+
+    // 💾 Salva ou recupera a chave no Firebase
+    function salvarChaveNoFirebase(cpfCnpj, tipo) {
       db.ref("chaves/" + cpfCnpj).once("value").then(snapshot => {
         if (snapshot.exists()) {
           const dados = snapshot.val();
@@ -173,6 +198,7 @@
           const dadosChave = {
             chave: novaChave,
             cpf_cnpj: cpfCnpj,
+            tipo: tipo,
             validade: validadeFormatada,
             dataCadastro: hoje.toLocaleString("pt-BR")
           };
@@ -186,12 +212,10 @@
             })
             .catch(error => alert("Erro ao salvar no banco: " + error));
         }
-      }).catch(error => {
-        console.error("Erro ao acessar o Firebase:", error);
-        alert("Erro ao conectar ao Firebase. Verifique o console.");
       });
     }
 
+    // 🔐 Gera código aleatório
     function gerarCodigoUnico() {
       const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let codigo = '';
